@@ -98,7 +98,12 @@ float Vec3f::magnitude()
 Vec3f Vec3f::normalize()
 {
 	float mag = sqrtf((x * x) + (y * y) + (z * z));
-	return Vec3f(x * (1.0f/mag), y * (1.0f/mag), z * (1.0f/mag));
+	if (mag != 0.0f) {
+		return Vec3f(x * (1.0f / mag), y * (1.0f / mag), z * (1.0f / mag));
+	}
+	else {
+		return Vec3f(); 
+	}
 }
 
 Vec3f Vec3f::square()
@@ -225,7 +230,12 @@ float Vec4f::magnitude()
 Vec4f Vec4f::normalize()
 {
 	float mag = sqrtf((x * x) + (y * y) + (z * z) + (a * a));
-	return Vec4f(x * (1.0f/mag), y * (1.0f/mag), z * (1.0f/mag), a * (1.0f/mag));
+	if (mag != 0.0f) {
+		return Vec4f(x * (1.0f / mag), y * (1.0f / mag), z * (1.0f / mag), a * (1.0f / mag));
+	}
+	else {
+		return Vec4f(); 
+	}
 }
 
 Vec4f Vec4f::square()

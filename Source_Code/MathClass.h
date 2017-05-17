@@ -227,7 +227,6 @@ inline Mat4f Identity()
 }
 
 //------------------------------------------------------------------------------------------------------------------------------------------------>
-
 ////creates a 4D rotation matrix on the x-axis
 inline Mat4f RotateX(const float angle)
 {
@@ -256,6 +255,10 @@ inline Mat4f RotateZ(const float angle)
 				 Vec4f(sinf(radians), cos(radians), 0.0f, 0.0f), 
 				 Vec4f(0.0f, 0.0f, 1.0f, 0.0f), 
 				 Vec4f(0.0f, 0.0f, 0.0f, 1.0f));
+}
+
+inline Mat4f Rotate(const float angleX, const float angleY, const float angleZ) {
+	return RotateZ(angleZ) * RotateY(angleY) * RotateX(angleX);
 }
 
 //------------------------------------------------------------------------------------------------------------------------------------------------>
@@ -307,13 +310,40 @@ which starts from the viewport and travels down the z-axis.
 */
 inline Mat4f Perspective(float fovyDegrees, float aspectRatio, float zNear, float zFar)
 {
-	float top = tanf((fovyDegrees * DegreesToRadians) * 0.5f) * zNear;
+	/*float top = tanf((fovyDegrees * DegreesToRadians) * 0.5f) * zNear;
 	float right = top * aspectRatio;
 
 	return Mat4f(Vec4f(zNear/right, 0.0f, 0.0f, 0.0f), 
 				Vec4f(0.0f, zNear/top, 0.0f, 0.0f), 
 				Vec4f(0.0f, 0.0f, -(zFar + zNear) / (zFar - zNear), (-2.0f * zFar * zNear) / (zFar - zNear)), 
-				Vec4f(0.0f, 0.0f, -1.0f, 0.0f));
+				Vec4f(0.0f, 0.0f, -1.0f, 0.0f));*/
+
+	const float zRange = zNear - zFar;
+	const float tanHalfFOV = tanf(DegreesToRadians * (fovyDegrees / 2.0));
+
+	Mat4f m;
+
+	m.a[0][0] = 1.0f / (tanHalfFOV * aspectRatio);
+	m.a[0][1] = 0.0f;
+	m.a[0][2] = 0.0f;
+	m.a[0][3] = 0.0f;
+	
+	m.a[1][0] = 0.0f;
+	m.a[1][1] = 1.0f / tanHalfFOV;
+	m.a[1][2] = 0.0f;
+	m.a[1][3] = 0.0f;
+	  
+	m.a[2][0] = 0.0f;
+	m.a[2][1] = 0.0f;
+	m.a[2][2] = (-zNear - zFar) / zRange;
+	m.a[2][3] = 2.0f * zFar * zNear / zRange;
+	  
+	m.a[3][0] = 0.0f;
+	m.a[3][1] = 0.0f;
+	m.a[3][2] = 1.0f;
+	m.a[3][3] = 0.0f;
+
+	return m; 
 }
 
 inline Mat4f Orthographic(float width, float height, float zNear, float zFar)
@@ -456,19 +486,19 @@ public:
 
 };
 
-inline Quat rotationQuat(float degrees, Vec3f &axis)
+inline Quat RotateQuat(float degrees, Vec3f &axis)
 {
 	float radians = degrees * DegreesToRadians;
 	return Quat(cosf(radians / 2), axis.normalize() * (sinf(radians / 2)));
 }
 
-inline Vec3f rotateVector(float degrees, Vec3f vector, Vec3f axis)
+inline Vec3f RotateQuatVector(float degrees, Vec3f vector, Vec3f axis)
 {
 	//rotation for any axis
 	//using quaternions
 	//using QvQ^c formula
 	//first we must figure out the rotation quaternion and its conjucate
-	Quat rotateQuat = rotationQuat(degrees, axis);
+	Quat rotateQuat = RotateQuat(degrees, axis);
 	Quat conjugate = rotateQuat.conjugate();
 
 	//next we find the new vector by rotation it
