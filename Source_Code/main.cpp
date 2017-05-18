@@ -1,12 +1,13 @@
-#include "include\GL\glew.h"		//OpenGL Extension Wrangler Library. Loads and provides easy access to all OpenGL extensions
-#include "include\GL\freeglut.h"	//OpenGL Utility library. Provides simplified API for window management, event handeling, IO control, etc.
-
 #include "SceneRenderer.h"
+#include "InputManager.h"
 #include "MathClass.h"
+
+#include "Texture.h"
 
 const int g_WindowSizeX = 1024, g_WindowSizeY = 768;
 
 std::unique_ptr<SceneRenderer> g_SceneRenderer;
+std::unique_ptr<InputManager> g_InputManager; 
 std::shared_ptr<Camera> g_Camera;
 
 void fn_SceneRenderer() {
@@ -14,18 +15,18 @@ void fn_SceneRenderer() {
 }
 
 void fn_KeyboardInput(unsigned char key, int x, int y) {
-	g_Camera->KeyboardInput(key);
+	g_InputManager->KeyboardInput(key);
 }
 
-void fn_MouseInput(int x, int y) {
-	g_Camera->MouseInput(x, y);
+void fn_MouseMotionInput(int x, int y) {
+	g_InputManager->MouseMotionInput(x, y);
 }
 
 void fn_InitializeGlutCallbacks() {
 	glutDisplayFunc(fn_SceneRenderer);	//Set up rendering/drawing callback. Called once a frame
 	glutIdleFunc(fn_SceneRenderer);		//allows renderer to be continuously called when events are not being received
 	glutKeyboardFunc(fn_KeyboardInput);
-	glutMotionFunc(fn_MouseInput); 
+	glutMotionFunc(fn_MouseMotionInput);		//Called when mouse moves when mouse button is being pressed
 }
 
 int main(int argc, char *argv[]) {
@@ -41,6 +42,10 @@ int main(int argc, char *argv[]) {
 	g_Camera->SetCameraPosition(0.0f, 0.0f, 2.0f);
 	g_Camera->SetCameraTarget(0.0f, 0.0f, -3.0f);
 
+	//setup input manager
+	g_InputManager = std::make_unique<InputManager>(g_Camera);
+
+	//Initialie GLUT callbacks 
 	fn_InitializeGlutCallbacks();
 
 	//set up glew, must be done after glut is initialized
@@ -52,7 +57,8 @@ int main(int argc, char *argv[]) {
 	
 	printf("GL version: %s\n", glGetString(GL_VERSION));
 
-	g_SceneRenderer._Myptr() = new SceneRenderer(g_WindowSizeX, g_WindowSizeY, g_Camera);
+	//Set up scene renderer
+	g_SceneRenderer = std::make_unique<SceneRenderer>(g_WindowSizeX, g_WindowSizeY, g_Camera);
 
 	glutWarpPointer(g_WindowSizeX / 2.0f, g_WindowSizeY / 2.0f);	//once window opens have mouse go directly to middle of screen
 	

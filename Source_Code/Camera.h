@@ -27,17 +27,15 @@ public:
 	Vec3f GetCameraPosition();
 	Mat4f GetViewMatrix(); //used to bring world space coordinates into eye/camera space 
 
-	//input
-	void KeyboardInput(unsigned char key);
-	void MouseInput(int x, int y); 
-
-private:
-	void UpdateCamera();
-
 	//Frenet Frame
 	Vec3f m_ForwardVector;
 	Vec3f m_UpVector;
-	Vec3f m_RightVector; 
+	Vec3f m_RightVector;
+
+	float m_speed;	//speed the camera can move at
+
+private:
+	void UpdateCamera();
 
 	Vec3f m_StartingForwardVector;
 
@@ -45,10 +43,6 @@ private:
 	Vec3f m_target; //look at position
 
 	Mat4f m_ViewMatrix; 
-
-	float m_speed;	//speed the camera can move at
-
-	Vec3f m_PreviousMousePosition; 
 
 	float m_ThetaX, m_ThetaY; 
 };
