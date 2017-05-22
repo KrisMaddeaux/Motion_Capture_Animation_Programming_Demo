@@ -1,7 +1,7 @@
 #include "Camera.h"
 
 Camera::Camera() { 
-	m_speed = 0.1f;
+	m_speed = 1.0f;
 	m_ThetaX = 0.0f;
 	m_ThetaY = 0.0f; 
 }

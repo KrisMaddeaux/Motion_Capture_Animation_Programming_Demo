@@ -1,6 +1,9 @@
 #include "SceneRenderer.h"
 
 SceneRenderer::SceneRenderer(float a_WindowSizeX, float a_WindowSizeY, std::shared_ptr<Camera> a_Camera) {
+	m_elapsedTime = 0.0f;
+	m_deltaTime = 0.0f;
+
 	//Create and set up camera
 	m_Camera = a_Camera;
 
@@ -8,7 +11,7 @@ SceneRenderer::SceneRenderer(float a_WindowSizeX, float a_WindowSizeY, std::shar
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);	//Clear framebuffer using specified colour
 
 											//Create vertex buffer
-	Vec3f l_vertices[4];
+	/*Vec3f l_vertices[4];
 	l_vertices[0] = Vec3f(-1.0f, -1.0f, 0.0f);
 	l_vertices[1] = Vec3f(0.0f, -1.0f, 1.0f);
 	l_vertices[2] = Vec3f(1.0f, -1.0f, 0.0f);
@@ -30,7 +33,7 @@ SceneRenderer::SceneRenderer(float a_WindowSizeX, float a_WindowSizeY, std::shar
 
 	glGenBuffers(1, &m_IBO);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_IBO);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(l_indices), l_indices, GL_STATIC_DRAW);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(l_indices), l_indices, GL_STATIC_DRAW);*/
 
 
 	//Create shader program
@@ -43,6 +46,9 @@ SceneRenderer::SceneRenderer(float a_WindowSizeX, float a_WindowSizeY, std::shar
 
 	m_PerspectiveMatrix = Perspective(60.0f, a_WindowSizeX / a_WindowSizeY, 1.0f, 100.0f);
 
+	//load animation skeleton from BVH file
+	m_skeleton.LoadBVHFile("Animations\\walking_Take_001.bvh"); 
+
 }
 //--------------------------------------------------------------------------------------------------------------------
 void SceneRenderer::RenderScene() {
@@ -51,17 +57,24 @@ void SceneRenderer::RenderScene() {
 }
 //--------------------------------------------------------------------------------------------------------------------
 void SceneRenderer::UpdateScene() {
+	//Get elapsed and delta time 
+	float l_newElapsedTime = glutGet(GLUT_ELAPSED_TIME) / 1000.0f;
+	m_deltaTime = l_newElapsedTime - m_elapsedTime;
+	m_elapsedTime = l_newElapsedTime;
 
-
+	//update skeleton
+	m_skeleton.UpdateSkeleton(Vec3f(0.0f, -10.0f, 50.0f), 180.0f, m_deltaTime, false); 
 }
 //--------------------------------------------------------------------------------------------------------------------
 void SceneRenderer::DrawScene() {
 	glClear(GL_COLOR_BUFFER_BIT);
 
+	//m_skeleton.DrawSkeleton(); 
+
 	//---------------------
 	m_ShaderProgram->Enable();
-
-	static float l_Scale = 0.0f;
+	
+	/*static float l_Scale = 0.0f;
 	l_Scale += 0.1f;
 
 	Mat4f l_world = Translate(0.0f, 0.0f, 5.0f) * Rotate(0.0f, l_Scale, 0.0f);
@@ -69,6 +82,7 @@ void SceneRenderer::DrawScene() {
 	glUniformMatrix4fv(m_MVPLocation, 1, GL_TRUE, &l_WP.m[0]);
 
 	glEnableVertexAttribArray(0);
+
 	glBindBuffer(GL_ARRAY_BUFFER, m_VBO); //bind buffer again in preperation for draw call
 	glVertexAttribPointer(	//tells the pipeline how to interpret the data inside the buffer
 		0,					//Index of the attribute or shader being used. 0 for deafault/fixed pipeline 
@@ -79,7 +93,11 @@ void SceneRenderer::DrawScene() {
 		0);					//offset inside the structure where the pipeline will find our attribute
 
 	glDrawElements(GL_TRIANGLES, 12, GL_UNSIGNED_INT, 0);
-	glDisableVertexAttribArray(0);
+	glDisableVertexAttribArray(0);*/
+
+	//draw skeleton
+	m_skeleton.DrawSkeleton(m_MVPLocation, m_PerspectiveMatrix, m_Camera->GetViewMatrix());
+
 	m_ShaderProgram->Disable();
 	//---------------------
 

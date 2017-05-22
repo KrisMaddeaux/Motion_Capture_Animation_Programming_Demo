@@ -6,7 +6,6 @@ Joint::Joint()
 {
 	m_Parent = NULL;
 	m_TLocal = m_ObjectSpace = Mat4f();
-	m_ObjectSpacePos = Vec4f();
 }
 
 Joint::~Joint()
@@ -28,23 +27,28 @@ void Joint::LoadWeightMap(std::string a_fileDirectory)
 	}
 }
 
-void Joint::UpdateTransform(std::shared_ptr<Animation> a_animation, int a_frameCounter, int &a_channelCounter)
+void Joint::UpdateTransform(std::shared_ptr<Animation> a_animation, int a_frameCounter, int &a_channelCounter, bool a_move)
 {
 	if (m_numChannels == 6)
 	{
-		Mat4f l_temp = Translate(a_animation->m_Frames[a_frameCounter].m_Tranformations[a_channelCounter], 
-							   a_animation->m_Frames[a_frameCounter].m_Tranformations[a_channelCounter + 1], 
-							   a_animation->m_Frames[a_frameCounter].m_Tranformations[a_channelCounter + 2]);
-		m_TLocal = l_temp;
 
-		////so animations stay in one spot
-		//Mat4f temp = Translate(0.0f, animation->Frames[frameCounter].Tranformations[channelCounter + 1], 0.0f);
-		//TLocal = temp; 	
+		if (a_move) {
+			Mat4f l_temp = Translate(a_animation->m_Frames[a_frameCounter].m_Tranformations[a_channelCounter],
+				a_animation->m_Frames[a_frameCounter].m_Tranformations[a_channelCounter + 1],
+				a_animation->m_Frames[a_frameCounter].m_Tranformations[a_channelCounter + 2]);
+			m_TLocal = l_temp;
+		}
+		else {
+			////so animations stay in one spot
+			Mat4f temp = Translate(0.0f, a_animation->m_Frames[a_frameCounter].m_Tranformations[a_channelCounter + 1], 0.0f);
+			m_TLocal = temp;
+		}
 
 		Mat4f rZ = RotateZ(a_animation->m_Frames[a_frameCounter].m_Tranformations[a_channelCounter + 3]);	//z
 		Mat4f rX = RotateX(a_animation->m_Frames[a_frameCounter].m_Tranformations[a_channelCounter + 4]);	//y
 		Mat4f rY = RotateY(a_animation->m_Frames[a_frameCounter].m_Tranformations[a_channelCounter + 5]);	//x
-		m_RLocal = rZ * rX * rY; //rZ * rY * rX
+		m_RLocal = rZ * rX * rY; 
+		//m_RLocal = rZ * rY * rX;
 
 		a_channelCounter += 6;
 	}
@@ -54,6 +58,7 @@ void Joint::UpdateTransform(std::shared_ptr<Animation> a_animation, int a_frameC
 		Mat4f rX = RotateX(a_animation->m_Frames[a_frameCounter].m_Tranformations[a_channelCounter + 1]);
 		Mat4f rY = RotateY(a_animation->m_Frames[a_frameCounter].m_Tranformations[a_channelCounter + 2]);
 		m_RLocal = rZ * rX * rY;
+		//m_RLocal = rZ * rY * rX;
 
 		a_channelCounter += 3;
 	}
@@ -61,40 +66,7 @@ void Joint::UpdateTransform(std::shared_ptr<Animation> a_animation, int a_frameC
 	//update all of the childern
 	for (unsigned int i = 0; i < this->m_Children.size(); ++i)
 	{
-		m_Children[i]->UpdateTransform(a_animation, a_frameCounter, a_channelCounter);
-	}
-}
-
-void Joint::UpdateAdditiveTransform(std::shared_ptr<Animation> a_animation1, std::shared_ptr<Animation> a_animation2, int a_frameCounter, int &a_channelCounter)
-{
-	if (m_numChannels == 6)
-	{
-		Mat4f temp = Translate(a_animation1->m_Frames[a_frameCounter].m_Tranformations[a_channelCounter], 
-							   a_animation1->m_Frames[a_frameCounter].m_Tranformations[a_channelCounter + 1], 
-							   a_animation1->m_Frames[a_frameCounter].m_Tranformations[a_channelCounter + 2]);
-		m_TLocal = temp;
-
-		Mat4f rZ = RotateZ(a_animation1->m_Frames[a_frameCounter].m_Tranformations[a_channelCounter + 3] + a_animation2->m_Frames[a_frameCounter].m_Tranformations[a_channelCounter + 3]);
-		Mat4f rY = RotateY(a_animation1->m_Frames[a_frameCounter].m_Tranformations[a_channelCounter + 4] + a_animation2->m_Frames[a_frameCounter].m_Tranformations[a_channelCounter + 4]);
-		Mat4f rX = RotateX(a_animation1->m_Frames[a_frameCounter].m_Tranformations[a_channelCounter + 5] + a_animation2->m_Frames[a_frameCounter].m_Tranformations[a_channelCounter + 5]);
-		m_RLocal = rZ * rY * rX;
-
-		a_channelCounter += 6;
-	}
-	else if (m_numChannels == 3)
-	{
-		Mat4f rZ = RotateZ(a_animation1->m_Frames[a_frameCounter].m_Tranformations[a_channelCounter]	 + a_animation2->m_Frames[a_frameCounter].m_Tranformations[a_channelCounter]);
-		Mat4f rY = RotateY(a_animation1->m_Frames[a_frameCounter].m_Tranformations[a_channelCounter + 1] + a_animation2->m_Frames[a_frameCounter].m_Tranformations[a_channelCounter + 1]);
-		Mat4f rX = RotateX(a_animation1->m_Frames[a_frameCounter].m_Tranformations[a_channelCounter + 2] + a_animation2->m_Frames[a_frameCounter].m_Tranformations[a_channelCounter + 2]);
-		m_RLocal = rZ * rY * rX;
-
-		a_channelCounter += 3;
-	}
-
-	//update all of the childern
-	for (unsigned int i = 0; i < this->m_Children.size(); i++)
-	{
-		m_Children[i]->UpdateAdditiveTransform(a_animation1, a_animation2, a_frameCounter, a_channelCounter);
+		m_Children[i]->UpdateTransform(a_animation, a_frameCounter, a_channelCounter, a_move);
 	}
 }
 
@@ -107,26 +79,23 @@ void Joint::UpdateObjectSpaceTransform(Mat4f a_WParent)
 	m_SkinningMult = m_ObjectSpace * m_InverseObjectSpaceAtBind;
 	*(m_skinningOutput) = m_SkinningMult;
 
-	m_ObjectSpacePos = m_ObjectSpace * Vec4f(0.0f, 0.0f, 0.0f, 1.0f);
-
 	for (unsigned int i = 0; i < m_Children.size(); i++)
 	{
 		m_Children[i]->UpdateObjectSpaceTransform(m_ObjectSpace);
 	}
 }
 
-void Joint::DrawJoint()
+void Joint::DrawJoint(GLuint a_MVPLocation, Mat4f a_projection, Mat4f a_view)
 {
-	/*glPushMatrix();
-	glColor3f(1.0f, 1.0f, 1.0f);
-	glTranslatef(ObjectSpacePos[0], ObjectSpacePos[1], ObjectSpacePos[2]);
-	drawBox(1.0f, 1.0f, 1.0f);
-	glPopMatrix();
+	Mat4f l_WP = a_projection * a_view * m_ObjectSpace;
+	glUniformMatrix4fv(a_MVPLocation, 1, GL_TRUE, &l_WP.m[0]);
 
-	for (unsigned int i = 0; i < Children.size(); i++)
+	DrawPrimitive::DrawCube(1.0f, 1.0f, 1.0f);
+
+	for (unsigned int i = 0; i < m_Children.size(); i++)
 	{
-		Children[i]->drawJoint();
-	}*/
+		m_Children[i]->DrawJoint(a_MVPLocation, a_projection, a_view);
+	}
 }
 
 void Joint::AttachChild(std::shared_ptr<Joint> n)
@@ -394,7 +363,7 @@ void Skeleton::ParseFile(int &a_numOfBrakets, std::shared_ptr<Joint> a_current)
 	}
 }
 
-void Skeleton::UpdateSkeleton(Vec3f a_pos, float a_theta, float a_dt)
+void Skeleton::UpdateSkeleton(Vec3f a_pos, float a_theta, float a_dt, bool a_move)
 {
 	m_time += a_dt /* (animation->FrameTime)*/;
 
@@ -417,49 +386,16 @@ void Skeleton::UpdateSkeleton(Vec3f a_pos, float a_theta, float a_dt)
 	if (m_update)
 	{
 		m_update = false;
-		m_Root->UpdateTransform(m_animation, m_frameCounter, m_channelCounter);
+		m_Root->UpdateTransform(m_animation, m_frameCounter, m_channelCounter, a_move);
 	}
 
-	Mat4f l_temp = Translate(0.0f, 0.0f, 0.0f);//Translate(pos) * RotateY(theta) * Scale(0.65f, 0.65f, 0.65f);
+	Mat4f l_temp = Translate(a_pos) * RotateY(a_theta); //Translate(pos) * RotateY(theta) * Scale(0.65f, 0.65f, 0.65f);
 	m_Root->UpdateObjectSpaceTransform(l_temp);
 }
 
-void Skeleton::UpdateAdditiveSkeleton(std::shared_ptr<Skeleton> a_otherSkeleton, Vec3f a_pos, float a_theta, float a_dt)
+void Skeleton::DrawSkeleton(GLuint a_MVPLocation, Mat4f a_projection, Mat4f a_view)
 {
-	m_time += a_dt /* (animation->FrameTime)*/;
-
-	//update the animation
-	if (m_time >= m_animation->m_FrameTime)
-	{
-		m_update = true;
-		m_time = 0.0f;
-		m_channelCounter = 0;
-		m_frameCounter++;
-
-		//repeat the animation
-		if (m_frameCounter >= m_animation->m_numFrames)
-		{
-			m_frameCounter = 0;
-		}
-	}
-
-	//if it is time to update the frame of the animation
-	if (m_update)
-	{
-		m_update = false;
-		m_Root->UpdateAdditiveTransform(m_animation, a_otherSkeleton->m_animation, m_frameCounter, m_channelCounter);
-	}
-
-	Mat4f l_temp = Translate(a_pos) * RotateY(a_theta);
-	m_Root->UpdateObjectSpaceTransform(l_temp);
-}
-
-void Skeleton::DrawSkeleton()
-{
-	/*glDisable(GL_LIGHTING);
-	Root->drawJoint();
-	//Root->Children[0]->Children[0]->drawJoint();
-	glEnable(GL_LIGHTING);*/
+	m_Root->DrawJoint(a_MVPLocation, a_projection, a_view);
 }
 
 void Skeleton::LoadJointWeightMaps(std::string a_fileDirectory)

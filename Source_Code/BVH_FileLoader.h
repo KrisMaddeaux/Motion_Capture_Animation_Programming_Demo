@@ -7,7 +7,7 @@
 #include <stdio.h>
 #include <string>
 #include <memory>
-//#include "drawPrimitives.h"
+#include "DrawPrimitives.h"
 
 //a frame is a list of tranformations for the skeleton
 struct Frame{
@@ -38,20 +38,18 @@ public:
 	~Joint();
 
 	void LoadWeightMap(std::string a_fileDirectory);
-	void UpdateTransform(std::shared_ptr<Animation> a_animation, int a_frameCounter, int &a_channelCounter);
-	void UpdateAdditiveTransform(std::shared_ptr<Animation> a_animation1, std::shared_ptr<Animation> a_animation2, int fa_rameCounter, int &a_channelCounter);	//both animation must have the same number of frames
+	void UpdateTransform(std::shared_ptr<Animation> a_animation, int a_frameCounter, int &a_channelCounter, bool a_move);
 	void UpdateObjectSpaceTransform(Mat4f a_WParent);
 	void AttachChild(std::shared_ptr<Joint> n);
 
-	void DrawJoint();
+	void DrawJoint(GLuint a_MVPLocation, Mat4f a_projection, Mat4f a_view);
 
 	std::string m_name;	//the name of the joint
-	std::shared_ptr<Joint> m_Parent;
-	Mat4f m_TLocal, m_RLocal, m_ObjectSpace, m_SkinningMult;
+	std::shared_ptr<Joint> m_Parent; //the joint(s) that comes before the current joint in the skeleton
+	Mat4f m_TLocal, m_RLocal, m_ObjectSpace, m_SkinningMult;	//transformation matrices
 	Mat4f m_ObjectSpaceAtBind;	//first frame
 	Mat4f m_InverseObjectSpaceAtBind;
-	Vec4f m_ObjectSpacePos;
-	std::vector<std::shared_ptr<Joint>> m_Children;
+	std::vector<std::shared_ptr<Joint>> m_Children;	//the joint(s) that comes after the current joint in the skeleton
 	std::vector<float> m_Channels;
 	int m_numChannels; //can only have 3 or 6 numChannels
 	int m_level;	//the level of the joint in the heiarachy
@@ -75,12 +73,11 @@ public:
 	//to load joint weight maps, just give the location of the file that they are in, and program will automatically load all of the
 	//proper weight maps and store it to the proper joint
 	void LoadJointWeightMaps(std::string a_fileDirectory);
-	void UpdateSkeleton(Vec3f a_pos, float a_theta, float a_dt);	//updates the skeleton with the current animation
-	void UpdateAdditiveSkeleton(std::shared_ptr<Skeleton> a_otherSkeleton, Vec3f a_pos, float a_theta, float a_dt);	//updates the skeleton with the current additive animation
+	void UpdateSkeleton(Vec3f a_pos, float a_theta, float a_dt, bool a_move);	//updates the skeleton with the current animation
 	void SetOutputJoints(); //intializes the data for the joints that are sent to the shader for mesh skinning
-	void DrawSkeleton();
+	void DrawSkeleton(GLuint a_MVPLocation, Mat4f a_projection, Mat4f a_view);
 
-	std::shared_ptr<Joint> m_Root;
+	std::shared_ptr<Joint> m_Root;	//The starting joint in the Skeleton heiarchy 
 	int m_totalNumChannels;	//the total number of numChannels for all of the joints in the skeleton
 	float m_time;
 	bool m_update;

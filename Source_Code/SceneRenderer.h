@@ -2,6 +2,7 @@
 #include "ShaderProgram.h"
 #include "Camera.h"
 #include "MathClass.h"
+#include "BVH_FileLoader.h"
 
 #include <memory>
 
@@ -26,5 +27,10 @@ private:
 	
 	Mat4f m_PerspectiveMatrix;
 
+	Skeleton m_skeleton; 
+
+	//for times and updates
+	float m_elapsedTime;
+	float m_deltaTime; 
 
 };
