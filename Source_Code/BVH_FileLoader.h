@@ -1,7 +1,7 @@
 #pragma once
 //stores skeleton animations from BVH files
 
-#include "Texture.h"
+//#include "Texture.h"
 #include "MathClass.h"
 #include <vector>
 #include <stdio.h>
@@ -57,7 +57,7 @@ public:
 	//Mat4f *skinningOutput;
 	Mat4f *m_skinningOutput;
 
-	Texture m_weightMap; //the weight map of the joint for the model's vertices 
+	//Texture m_weightMap; //the weight map of the joint for the model's vertices 
 };
 
 //can only support one skeleton at a time

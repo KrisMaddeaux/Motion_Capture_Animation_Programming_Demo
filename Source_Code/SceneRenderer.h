@@ -3,6 +3,7 @@
 #include "Camera.h"
 #include "MathClass.h"
 #include "BVH_FileLoader.h"
+//#include "Model3D.h"
 
 #include <memory>
 
@@ -18,8 +19,8 @@ private:
 	void DrawScene();
 
 	//uniform variables for shaders
-	GLuint m_VBO;
-	GLuint m_IBO;
+	//GLuint m_VBO;
+	//GLuint m_IBO;
 	GLuint m_MVPLocation;
 
 	std::unique_ptr<ShaderProgram> m_ShaderProgram;
@@ -32,5 +33,7 @@ private:
 	//for times and updates
 	float m_elapsedTime;
 	float m_deltaTime; 
+
+	//Model3D m_model; 
 
 };

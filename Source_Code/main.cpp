@@ -2,8 +2,6 @@
 #include "InputManager.h"
 #include "MathClass.h"
 
-#include "Texture.h"
-
 const int g_WindowSizeX = 1024, g_WindowSizeY = 768;
 
 std::unique_ptr<SceneRenderer> g_SceneRenderer;

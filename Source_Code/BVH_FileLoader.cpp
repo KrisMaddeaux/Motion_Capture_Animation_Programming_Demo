@@ -14,7 +14,7 @@ Joint::~Joint()
 
 void Joint::LoadWeightMap(std::string a_fileDirectory)
 {
-	std::string l_temp = a_fileDirectory;
+	/*std::string l_temp = a_fileDirectory;
 	l_temp.append(m_name);
 	l_temp.append(".jpg");
 
@@ -24,7 +24,7 @@ void Joint::LoadWeightMap(std::string a_fileDirectory)
 	for (unsigned int i = 0; i < this->m_Children.size(); ++i)
 	{
 		m_Children[i]->LoadWeightMap(a_fileDirectory);
-	}
+	}*/
 }
 
 void Joint::UpdateTransform(std::shared_ptr<Animation> a_animation, int a_frameCounter, int &a_channelCounter, bool a_move)
